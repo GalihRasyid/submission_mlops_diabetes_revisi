@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s # Ambil data tiap 5 detik
+
+scrape_configs:
+  - job_name: 'monitoring_model_saya'
+    static_configs:
+      - targets: ['localhost:8000']

@@ -1,0 +1,29 @@
+name: CI/CD Pipeline Diabetes
+on: [push]
+jobs:
+  build-and-train:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        pip install pandas scikit-learn mlflow dagshub joblib prometheus-client
+
+    # PATH BARU: Eksperimen
+    - name: Run Automated Preprocessing
+      run: |
+        cd Eksperimen_SML_GalihRasyid/preprocessing
+        python automate_GalihRasyid.py
+    
+    # PATH BARU: Modelling
+    - name: Run Model Training
+      run: |
+        cd Workflow-CI/MLProject
+        python modelling.py
