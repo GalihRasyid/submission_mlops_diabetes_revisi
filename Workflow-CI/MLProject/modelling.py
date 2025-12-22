@@ -25,18 +25,40 @@ except Exception:
 dagshub.init(repo_owner='GalihRasyid', repo_name='submission_diabetes_GalihRasyid', mlflow=True)
 mlflow.set_tracking_uri("https://dagshub.com/GalihRasyid/submission_diabetes_GalihRasyid.mlflow")
 
-# --- 2. LOAD DATA ---
-# Perhatikan path baru sesuai struktur folder Reviewer
-try:
-    df = pd.read_csv('diabetes_preprocessing/diabetes_clean.csv')
-except FileNotFoundError:
-    # Backup jika dijalankan dari root
-    df = pd.read_csv('../diabetes_preprocessing/diabetes_clean.csv')
+# --- 2. LOAD DATA (FIX PATH) ---
+# Kita buat logika pencarian file yang lebih cerdas
+csv_filename = 'diabetes_clean.csv'
+
+# Kemungkinan lokasi file:
+# 1. Di folder yang sama (folder MLProject/diabetes_preprocessing)
+# 2. Di folder tetangga (Eksperimen_SML.../preprocessing/diabetes_preprocessing)
+possible_paths = [
+    'diabetes_preprocessing/diabetes_clean.csv',  # Jika dicopy manual
+    '../diabetes_preprocessing/diabetes_clean.csv', # Backup 1
+    '../../Eksperimen_SML_GalihRasyid/preprocessing/diabetes_preprocessing/diabetes_clean.csv' # <--- INI LOKASI ASLINYA DI GITHUB
+]
+
+df = None
+found_path = ""
+
+for path in possible_paths:
+    if os.path.exists(path):
+        print(f"✅ Dataset ditemukan di: {path}")
+        df = pd.read_csv(path)
+        found_path = path
+        break
+
+if df is None:
+    # Jika masih gagal, kita coba print isi folder saat ini untuk debugging
+    print("❌ Error: Dataset tidak ditemukan dimanapun!")
+    print(f"Posisi saat ini: {os.getcwd()}")
+    print("Isi folder saat ini:", os.listdir())
+    print("Mencoba naik satu level:", os.listdir('..'))
+    raise FileNotFoundError("Gagal load diabetes_clean.csv")
 
 X = df.drop('Outcome', axis=1)
 y = df['Outcome']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
 # --- 3. TRAINING & LOGGING (FIX KRITERIA 2) ---
 mlflow.set_experiment("Diabetes_Fix_Artifacts")
 
